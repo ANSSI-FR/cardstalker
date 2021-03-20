@@ -1,0 +1,231 @@
+CC=gcc
+LD=gcc
+RUBY=ruby
+LCOV=lcov
+GCOV=gcov
+GENHTML=genhtml
+
+
+
+
+HEADERS_TO_MOCK=reader_hal_basis.h
+HEADERS_TO_MOCK+= reader_periph.h
+HEADERS_TO_MOCK+= reader_hal_comm_settings.h
+HEADERS_TO_MOCK+= reader_hal.h
+
+EXCLUDED_FROM_COMPILATION=startup_stm32f407xx.s
+EXCLUDED_FROM_COMPILATION+= stm32f4xx_hal_msp.c
+EXCLUDED_FROM_COMPILATION+= stm32f4xx_it.c
+EXCLUDED_FROM_COMPILATION+= system_stm32f4xx.c
+EXCLUDED_FROM_COMPILATION+= stm32f4xx_hal_uart_custom.c
+EXCLUDED_FROM_COMPILATION+= bridge.c
+EXCLUDED_FROM_COMPILATION+= $(HEADERS_TO_MOCK:.h=.c)
+
+
+
+
+DIR_TESTS=./tests
+DIR_UNITY=./Unity
+DIR_CMOCK=./CMock
+DIR_TESTS_TOOLBOX=$(DIR_TESTS)/toolbox
+CMOCK_SCRIPT=$(DIR_CMOCK)/lib/cmock.rb
+CMOCK_CONFIG=./cmock_conf.yml
+
+DIR_READER=./iso7816-reader
+DIR_UNITY_SRC=$(DIR_UNITY)/src
+DIR_CMOCK_SRC=$(DIR_CMOCK)/src
+DIR_BRIDGE_SRC=./src
+DIR_BRIDGE_INC=./inc
+DIR_READER_INC=$(DIR_READER)/inc
+DIR_READER_SRC=$(DIR_READER)/src
+
+DIR_MOCKS=$(DIR_TESTS)/mocks
+DIR_MOCKS_SRCS=$(DIR_MOCKS)/src
+DIR_MOCKS_OBJS=$(DIR_MOCKS)/obj
+DIR_OUT=$(DIR_TESTS)/out
+DIR_DEP=$(DIR_TESTS)/dep
+DIR_OBJ=$(DIR_TESTS)/obj
+DIR_LIB=$(DIR_TESTS)/lib
+DIR_TEST_OBJ=$(DIR_TESTS)/testobj
+DIR_COV=$(DIR_TESTS)/cov
+
+
+#LIBREADER=reader
+#LIBREADERFILE=$(DIR_READER)/lib$(LIBREADER).a
+
+
+UNITY_OBJ=unity.o
+CMOCK_OBJ=cmock.o
+TESTS_TOOLBOX_OBJ=tests_toolbox.o
+
+
+
+HEADERS_TO_MOCK_PATHS=$(addprefix $(DIR_READER_INC)/,$(HEADERS_TO_MOCK))
+
+MOCKS_PREFIX=mock_
+MOCKS_SRCS_FILE_NAMES=$(addprefix $(MOCKS_PREFIX),$(HEADERS_TO_MOCK:.h=.c))
+MOCKS_SRCS=$(addprefix $(DIR_MOCKS_SRCS)/,$(MOCKS_SRCS_FILE_NAMES))
+MOCKS_OBJS_FILE_NAMES=$(addprefix $(MOCKS_PREFIX),$(HEADERS_TO_MOCK:.h=.o))
+MOCKS_OBJS=$(addprefix $(DIR_MOCKS_OBJS)/,$(MOCKS_OBJS_FILE_NAMES))
+
+
+
+INCS= -I$(DIR_UNITY_SRC)
+INCS+= -I$(DIR_BRIDGE_INC)
+INCS+= -I$(DIR_BRIDGE_SRC)
+INCS+= -I$(DIR_CMOCK_SRC)
+INCS+= -I$(DIR_MOCKS_SRCS)
+INCS+= -I$(DIR_READER_INC)
+INCS+= -I$(DIR_READER_SRC)
+INCS+= -I$(DIR_TESTS_TOOLBOX)
+
+#DEFS= -DTEST
+DEFS= -DTEST -DCMOCK_MEM_DYNAMIC -UCMOCK_MEM_STATIC
+
+
+#CFLAGS+= -Wall
+#CFLAGS+= -Wextra
+#CFLAGS+= -ansi
+#CFLAGS+= -pedantic
+CFLAGS+= -O0
+CFLAGS+= $(DEFS)
+CFLAGS+= $(INCS)
+CFLAGS+= -g
+CFLAGS+= -fprofile-arcs -ftest-coverage
+
+
+LDFLAGS= -lgcov
+LDFLAGS+= -fprofile-arcs
+
+
+LCOVFLAGS= --gcov-tool $(GCOV)
+
+
+
+
+OUTPUT_NAME=test
+OUTPUT_ELF=$(OUTPUT_NAME).elf
+
+
+
+
+
+EXCLUDED=$(addprefix --hide ,$(EXCLUDED_FROM_COMPILATION))
+
+SRCS=$(shell ls $(DIR_BRIDGE_SRC) $(EXCLUDED))
+OBJS=$(addprefix $(DIR_OBJ)/,$(SRCS:.c=.o))
+DEPS=$(addprefix $(DIR_DEP)/,$(SRCS:.c=.d))
+
+
+TEST_SRCS=$(notdir $(shell ls $(DIR_TESTS)/*.c))
+TEST_OBJS=$(addprefix $(DIR_TEST_OBJ)/,$(TEST_SRCS:.c=.o))
+TEST_ELFS=$(addprefix $(DIR_OUT)/,$(TEST_SRCS:.c=.elf))
+
+
+
+
+.PHONY: all dirs clean test report
+
+.PRECIOUS:$(MOCKS_SRCS)
+
+
+
+all:dirs $(TEST_ELFS)
+
+
+test:
+	for file in $(TEST_ELFS); do command $$file; done
+
+report:
+	$(LCOV) $(LCOVFLAGS) --directory $(DIR_OBJ) -c -o $(DIR_COV)/lconv.info
+	$(GENHTML) -o $(DIR_COV)/cov_report -t "COV REPORT" $(DIR_COV)/lconv.info
+
+clean:
+	rm -v -rf $(DIR_OUT) 
+	rm -v -rf $(DIR_COV) 
+	rm -v -rf $(DIR_DEP)
+	rm -v -rf $(DIR_OBJ)
+	rm -v -rf $(DIR_LIB)
+	rm -v -rf $(DIR_TEST_OBJ)
+	rm -v -rf $(DIR_MOCKS_SRCS)
+	rm -v -rf $(DIR_MOCKS_OBJS)
+	rm -v -rf $(DIR_MOCKS)
+
+
+dirs:
+	mkdir -v -p $(DIR_TESTS)
+	mkdir -v -p $(DIR_COV)
+	mkdir -v -p $(DIR_MOCKS)
+	mkdir -v -p $(DIR_MOCKS_SRCS)
+	mkdir -v -p $(DIR_MOCKS_OBJS)
+	mkdir -v -p $(DIR_OBJ)
+	mkdir -v -p $(DIR_DEP)
+	mkdir -v -p $(DIR_OUT)
+	mkdir -v -p $(DIR_LIB)
+	mkdir -v -p $(DIR_TEST_OBJ)
+
+
+
+#$(DIR_OUT)/$(OUTPUT_ELF):$(OBJS) $(DIR_LIB)/$(UNITY_OBJ) $(TEST_OBJS)
+#$(DIR_OUT)/$(OUTPUT_ELF):$(OBJS) $(MOCKS_OBJS) $(DIR_LIB)/$(UNITY_OBJ) $(DIR_LIB)/$(CMOCK_OBJ) $(TEST_OBJS)
+#	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	
+#$(TEST_ELFS):$(OBJS) $(MOCKS_OBJS) $(DIR_LIB)/$(UNITY_OBJ) $(DIR_LIB)/$(CMOCK_OBJ) $(TEST_OBJS)
+#	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	
+#$(DIR_OUT)/%.elf:$(DIR_TEST_OBJ)/%.o  $(MOCKS_OBJS) $(DIR_LIB)/$(UNITY_OBJ) $(DIR_LIB)/$(CMOCK_OBJ) $(TESTS_TOOLBOX_OBJ)
+#	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+
+$(DIR_OUT)/tests_buffer.elf:$(DIR_TEST_OBJ)/tests_buffer.o $(DIR_LIB)/$(UNITY_OBJ) $(DIR_OBJ)/bytes_buffer.o
+	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+$(DIR_OUT)/tests_semaphore.elf:$(DIR_TEST_OBJ)/tests_semaphore.o $(DIR_LIB)/$(UNITY_OBJ) $(DIR_OBJ)/semaphore.o
+	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+$(DIR_OUT)/tests_state_machine.elf:$(DIR_TEST_OBJ)/tests_state_machine.o $(DIR_LIB)/$(UNITY_OBJ) $(DIR_OBJ)/state_machine.o $(DIR_OBJ)/bytes_buffer.o $(DIR_OBJ)/semaphore.o
+	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+
+$(DIR_OUT)/tests_bridge_advanced.elf:$(MOCKS_OBJS) $(DIR_TEST_OBJ)/$(TESTS_TOOLBOX_OBJ) $(DIR_LIB)/$(UNITY_OBJ) $(DIR_LIB)/$(CMOCK_OBJ) $(DIR_TEST_OBJ)/tests_bridge_advanced.o $(DIR_OBJ)/bridge_advanced.o $(DIR_OBJ)/state_machine.o $(DIR_OBJ)/bytes_buffer.o $(DIR_OBJ)/semaphore.o
+	$(LD) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	
+
+$(DIR_TEST_OBJ)/%.o:$(DIR_TESTS)/%.c
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+# Building Unity lib object ... 
+$(DIR_LIB)/$(UNITY_OBJ):$(DIR_UNITY_SRC)/unity.c $(DIR_UNITY_SRC)/unity.h $(DIR_UNITY_SRC)/unity_internals.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Building CMlock lib object ... 
+$(DIR_LIB)/$(CMOCK_OBJ):$(DIR_CMOCK_SRC)/cmock.c $(DIR_CMOCK_SRC)/cmock.h $(DIR_CMOCK_SRC)/cmock_internals.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+# Building Mock objects ...
+$(DIR_MOCKS_OBJS)/%.o:$(DIR_MOCKS_SRCS)/%.c $(HEADERS_TO_MOCK_PATHS)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+# Building the mocks from the headers using CMock script ... 
+$(DIR_MOCKS_SRCS)/%.c:$(HEADERS_TO_MOCK_PATHS)
+	$(RUBY) $(CMOCK_SCRIPT) -o$(CMOCK_CONFIG) $(DIR_READER_INC)/$(basename $(notdir $(subst mock_,,$@))).h
+
+# Building tests toolbox ...
+$(DIR_TEST_OBJ)/$(TESTS_TOOLBOX_OBJ):$(DIR_TESTS_TOOLBOX)/$(TESTS_TOOLBOX_OBJ:.o=.c)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+
+# Building dependences ... 
+$(DIR_OBJ)/%.o:$(DIR_BRIDGE_SRC)/%.c $(DIR_DEP)/%.d
+	$(CC) $(CFLAGS) -c -MD -MT $*.o -MF $(DIR_DEP)/$*.d $< -o $@
+
+$(DIR_OBJ)/%.o:$(DIR_DEP)/%.d
+	$(CC) $(CFLAGS) -c -MD -MT $*.o -MF $(DIR_DEP)/$*.d $< -o $@
+
+
+
+$(DIR_DEP)/%.d: ;
+
+
+-include $(DEPS)
