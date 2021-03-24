@@ -222,7 +222,7 @@ class SmartcardChecksumError(SmartcardError):
 
 
 
-
+# This function has been taken from the Boofuzz project (https://github.com/jtpereyda/boofuzz)
 def hex_to_hexstr(input_bytes):
 	"""
 	Render input_bytes as ASCII-encoded hex bytes, followed by a best effort
@@ -237,7 +237,7 @@ def hex_to_hexstr(input_bytes):
 	return hex_str(input_bytes)# + " " + repr(input_bytes)
 	
 	
-	
+# This function has been taken from the Boofuzz project (https://github.com/jtpereyda/boofuzz)
 def hex_str(s):
 	"""
 	Returns a hex-formatted string based on s.
