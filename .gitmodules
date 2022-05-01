@@ -1,27 +1,27 @@
 [submodule "Unity"]
-	path = Unity
-	url = https://github.com/ThrowTheSwitch/Unity.git
+        path = Unity
+        url = https://github.com/ThrowTheSwitch/Unity.git
 [submodule "CMock"]
-	path = CMock
-	url = https://github.com/ThrowTheSwitch/CMock.git
+        path = CMock
+        url = https://github.com/ThrowTheSwitch/CMock.git
 [submodule "iso7816-reader"]
-	path = iso7816-reader
-	url = https://github.com/ANSSI-FR/Open-ISO7816-Stack.git
+        path = iso7816-reader
+        url = https://github.com/ANSSI-FR/Open-ISO7816-Stack.git
 [submodule "lib/stm32f407/CMSIS"]
-	path = lib/stm32f407/CMSIS
-	url = git@github.com:ARM-software/CMSIS.git
+        path = lib/stm32f407/CMSIS
+        url = https://github.com/ARM-software/CMSIS.git
 [submodule "lib/stm32f411/CMSIS"]
-	path = lib/stm32f411/CMSIS
-	url = git@github.com:ARM-software/CMSIS.git
+        path = lib/stm32f411/CMSIS
+        url = https://github.com/ARM-software/CMSIS.git
 [submodule "lib/stm32f407/CMSIS_DEVICE"]
-	path = lib/stm32f407/CMSIS_DEVICE
-	url = git@github.com:STMicroelectronics/cmsis_device_f4.git
+        path = lib/stm32f407/CMSIS_DEVICE
+        url = https://github.com/STMicroelectronics/cmsis_device_f4.git
 [submodule "lib/stm32f411/CMSIS_DEVICE"]
-	path = lib/stm32f411/CMSIS_DEVICE
-	url = git@github.com:STMicroelectronics/cmsis_device_f4.git
+        path = lib/stm32f411/CMSIS_DEVICE
+        url = https://github.com/STMicroelectronics/cmsis_device_f4.git
 [submodule "lib/stm32f407/HAL"]
-	path = lib/stm32f407/HAL
-	url = git@github.com:STMicroelectronics/stm32f4xx_hal_driver.git
+        path = lib/stm32f407/HAL
+        url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
 [submodule "lib/stm32f411/HAL"]
-	path = lib/stm32f411/HAL
-	url = git@github.com:STMicroelectronics/stm32f4xx_hal_driver.git
+        path = lib/stm32f411/HAL
+        url = https://github.com/STMicroelectronics/stm32f4xx_hal_driver.git
